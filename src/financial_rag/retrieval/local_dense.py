@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import math
 import re
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -63,12 +64,17 @@ class LocalDenseRetriever:
         self,
         *,
         chunks: list[LocalChunkRecord],
-        embeddings: dict[str, list[float]],
+        embeddings: Mapping[str, list[float]],
         query_embedder: QueryEmbeddingProvider | None = None,
     ) -> None:
         self.chunks = chunks
         self.embeddings = embeddings
         self.query_embedder = query_embedder
+        # A packed store (PackedVectors) additionally exposes a row matrix, which
+        # lets dense scoring be one matmul. Plain dicts — tests, fixtures, and
+        # the per-file cache fallback — keep the original per-chunk cosine path,
+        # so their scores are bit-for-bit unchanged.
+        self._packed = _packed_source(embeddings)
 
     def search(
         self,
@@ -105,25 +111,27 @@ class LocalDenseRetriever:
             superseded = superseded_chunk_ids(knowable)
 
         query_text = query or ""
-        scored: list[tuple[float, LocalChunkRecord]] = []
-        for chunk in self.chunks:
-            if not _matches_filters(chunk.metadata, filters):
-                continue
-            if as_of_utc is not None and not _is_knowable_as_of(chunk.metadata, as_of_utc):
-                continue
-            if chunk.chunk_id in superseded:
-                continue
-            vector = self.embeddings.get(chunk.chunk_id)
-            dense_score = cosine_similarity(query_vector, vector) if vector is not None else 0.0
+        candidates = [
+            chunk
+            for chunk in self.chunks
+            if _matches_filters(chunk.metadata, filters)
+            and (as_of_utc is None or _is_knowable_as_of(chunk.metadata, as_of_utc))
+            and chunk.chunk_id not in superseded
+        ]
+        # Dense scores come back aligned with `candidates`, so the per-result
+        # value stays attached to its own chunk.
+        dense_scores = self._dense_scores(query_vector, candidates)
+        scored: list[tuple[float, float, LocalChunkRecord]] = []
+        for chunk, dense_score in zip(candidates, dense_scores, strict=True):
             lexical_score = lexical_relevance_score(query_text, chunk.chunk_text, chunk.metadata)
             score = lexical_score + (dense_score * 0.25)
             if _is_safe_harbor_only(chunk.chunk_text) and _asks_for_operating_risks(query_text):
                 score -= 1.25
-            scored.append((score, chunk))
+            scored.append((score, dense_score, chunk))
 
         scored.sort(key=lambda item: item[0], reverse=True)
         results: list[RetrievalResult] = []
-        for rank, (score, chunk) in enumerate(scored[:top_k], start=1):
+        for rank, (score, dense_score, chunk) in enumerate(scored[:top_k], start=1):
             metadata = dict(chunk.metadata)
             results.append(
                 RetrievalResult(
@@ -139,18 +147,103 @@ class LocalDenseRetriever:
             )
         return results
 
+    def _dense_scores(
+        self,
+        query_vector: list[float],
+        candidates: list[LocalChunkRecord],
+    ) -> list[float]:
+        """Cosine score per candidate chunk, aligned with ``candidates``.
+
+        With a packed store this is one matmul over the candidate rows only;
+        otherwise it is the original per-chunk pure-Python cosine. A chunk with
+        no cached vector scores 0.0 in both paths.
+        """
+
+        if self._packed is not None:
+            return _packed_dense_scores(self._packed, query_vector, candidates)
+        scores: list[float] = []
+        for chunk in candidates:
+            vector = self.embeddings.get(chunk.chunk_id)
+            scores.append(cosine_similarity(query_vector, vector) if vector is not None else 0.0)
+        return scores
+
+
+def _packed_source(embeddings: Mapping[str, list[float]]) -> Any | None:
+    """Return ``embeddings`` when it exposes the packed row-matrix protocol.
+
+    Duck-typed rather than an isinstance check so this module — the core
+    retrieval path — does not import numpy or ``packed_vectors`` when it is
+    handed an ordinary dict.
+    """
+
+    if getattr(embeddings, "matrix", None) is None:
+        return None
+    if not callable(getattr(embeddings, "row_for", None)):
+        return None
+    return embeddings
+
+
+def _packed_dense_scores(
+    packed: Any,
+    query_vector: list[float],
+    candidates: list[LocalChunkRecord],
+) -> list[float]:
+    """Vectorized cosine over the candidate rows of a packed matrix."""
+
+    import numpy as np
+
+    scores = [0.0] * len(candidates)
+    if not candidates or not query_vector:
+        return scores
+    query = np.asarray(query_vector, dtype=np.float32)
+    query_norm = float(np.linalg.norm(query))
+    # Mirror cosine_similarity: a dimension mismatch or a zero-norm vector
+    # scores 0.0 rather than raising. The offline evals embed queries with a
+    # 1-dimension constant embedder, which lands here.
+    if query_norm == 0.0 or query.shape[0] != int(packed.matrix.shape[1]):
+        return scores
+
+    positions: list[int] = []
+    rows: list[int] = []
+    for position, chunk in enumerate(candidates):
+        row = packed.row_for(chunk.chunk_id)
+        if row is not None:
+            positions.append(position)
+            rows.append(row)
+    if not rows:
+        return scores
+
+    # Bound temporary float32 allocations for unfiltered queries. A normal
+    # single-ticker query fits in one batch; all-corpus queries do not allocate
+    # a second full matrix (or its norm-computation temporaries).
+    for start in range(0, len(rows), 4096):
+        batch_rows = np.asarray(rows[start : start + 4096], dtype=np.int64)
+        block = np.asarray(packed.matrix[batch_rows], dtype=np.float32)
+        norms = np.linalg.norm(block, axis=1) * query_norm
+        dots = block @ query
+        computed = np.divide(dots, norms, out=np.zeros_like(dots), where=norms > 0.0)
+        for position, value in zip(positions[start : start + 4096], computed.tolist(), strict=True):
+            scores[position] = float(value)
+    return scores
+
 
 def load_local_retrieval_corpus(
     *,
     root: Path | str = Path("."),
     snapshot: "CorpusSnapshot | None" = None,
-) -> tuple[list[LocalChunkRecord], dict[str, list[float]]]:
-    """Load local chunk JSONL files and vector-cache JSON files.
+) -> tuple[list[LocalChunkRecord], Mapping[str, list[float]]]:
+    """Load local chunk JSONL files and the cached chunk vectors.
 
     When ``snapshot`` is provided, the chunk set is restricted to the documents
     recorded in that snapshot at their recorded content (Phase 1 Stage 3). This
     is the pin seam: a pinned read reproduces even after new docs land.
     ``snapshot=None`` is a pure no-op, so the §4 eval reproduces exactly.
+
+    Vectors come from the packed artifact under ``data/packed`` when one exists
+    (seconds to load, memory-mapped); otherwise from the per-chunk JSON files
+    under ``data/vector_cache`` (minutes, and several GB resident on the full
+    corpus). Either way the return type is a mapping of chunk id to vector, so
+    callers are unaffected by which path ran.
     """
 
     store = LocalRagStore(root=root)
@@ -159,8 +252,15 @@ def load_local_retrieval_corpus(
         from src.financial_rag.corpus_snapshot import restrict_chunks_to_snapshot
 
         chunks = restrict_chunks_to_snapshot(chunks, snapshot)
-    embeddings = _load_embeddings(store.vector_cache_dir)
-    return chunks, embeddings
+    return chunks, _load_vectors(store)
+
+
+def _load_vectors(store: LocalRagStore) -> Mapping[str, list[float]]:
+    from src.financial_rag.retrieval.packed_vectors import load_packed_vectors, packed_vectors_exist
+
+    if packed_vectors_exist(store.packed_dir):
+        return load_packed_vectors(store.packed_dir)
+    return _load_embeddings(store.vector_cache_dir)
 
 
 def cosine_similarity(left: list[float], right: list[float]) -> float:

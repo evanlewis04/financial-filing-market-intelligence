@@ -9,6 +9,12 @@ from .local_dense import (
     lexical_relevance_score,
     load_local_retrieval_corpus,
 )
+from .packed_vectors import (
+    PackedVectors,
+    load_packed_vectors,
+    pack_vector_cache,
+    packed_vectors_exist,
+)
 from .rerank import (
     LexicalRerankerV1,
     RerankCandidate,
@@ -19,6 +25,7 @@ from .rerank import (
 
 __all__ = [
     "LocalDenseRetriever",
+    "PackedVectors",
     "LocalChunkRecord",
     "RetrievalFilters",
     "RetrievalResult",
@@ -30,4 +37,7 @@ __all__ = [
     "cosine_similarity",
     "lexical_relevance_score",
     "load_local_retrieval_corpus",
+    "load_packed_vectors",
+    "pack_vector_cache",
+    "packed_vectors_exist",
 ]

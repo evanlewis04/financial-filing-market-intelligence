@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
@@ -434,7 +435,7 @@ def serialize_chunk(chunk: LocalChunkRecord) -> dict[str, Any]:
     }
 
 
-def _embedding_dimensions(embeddings: dict[str, list[float]]) -> int:
+def _embedding_dimensions(embeddings: Mapping[str, list[float]]) -> int:
     for vector in embeddings.values():
         return len(vector)
     return 1

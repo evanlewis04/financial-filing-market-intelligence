@@ -25,12 +25,14 @@ class LocalRagStore:
         self.parsed_dir = self.root / "data" / "filings" / "parsed"
         self.chunks_dir = self.root / "data" / "filings" / "chunks"
         self.vector_cache_dir = self.root / "data" / "vector_cache"
+        self.packed_dir = self.root / "data" / "packed"
         self.snapshots_dir = self.root / "data" / "filings" / "snapshots"
         for directory in (
             self.raw_dir,
             self.parsed_dir,
             self.chunks_dir,
             self.vector_cache_dir,
+            self.packed_dir,
             self.snapshots_dir,
         ):
             directory.mkdir(parents=True, exist_ok=True)
