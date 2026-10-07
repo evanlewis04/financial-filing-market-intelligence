@@ -79,6 +79,7 @@ def test_hosted_gate_blocks_loading_and_clears_password(monkeypatch):
 
     monkeypatch.setattr(view, '_demo_service', forbidden)
     app = AppTest.from_string('from scripts.financial_rag_brief_view import main\nmain(hosted=True)')
+    app.secrets['APP_PASSWORD'] = ''
     app.run()
     assert not app.exception
     assert 'configures' in app.error[0].value
@@ -88,11 +89,11 @@ def test_hosted_gate_blocks_loading_and_clears_password(monkeypatch):
     app.text_input[0].set_value('wrong').run()
     assert calls == []
     assert app.error[0].value == 'Incorrect password.'
-    assert '_demo_password' not in app.session_state.filtered_state or not app.session_state['_demo_password']
+    assert '_demo_password' not in app.session_state or not app.session_state['_demo_password']
     app.text_input[0].set_value('test-password').run()
     assert calls == [True]
     assert app.exception[0].message == 'Load boundary reached'
-    assert '_demo_password' not in app.session_state.filtered_state
+    assert '_demo_password' not in app.session_state
 
 
 def test_demo_universe_is_per_service_and_does_not_change_legacy_default(tmp_path):
