@@ -1,0 +1,2 @@
+# Artifact hashes pin exact bytes, including CRLF, across platforms.
+artifacts/demo_slice/** -text whitespace=cr-at-eol

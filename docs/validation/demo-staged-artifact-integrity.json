@@ -1,0 +1,5 @@
+{
+  "files_checked": 535,
+  "staged_git_blobs_match_manifest": true,
+  "artifact_byte_preservation": "artifacts/demo_slice/** -text"
+}

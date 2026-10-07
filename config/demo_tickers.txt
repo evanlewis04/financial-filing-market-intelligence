@@ -1,0 +1,61 @@
+# Technology
+AAPL
+MSFT
+NVDA
+AMD
+INTC
+AVGO
+ORCL
+CRM
+ADBE
+CSCO
+# Communication services
+GOOGL
+META
+NFLX
+DIS
+VZ
+# Consumer discretionary
+AMZN
+TSLA
+HD
+MCD
+NKE
+# Consumer staples
+WMT
+COST
+PG
+KO
+PEP
+# Financials
+JPM
+BAC
+GS
+V
+MA
+# Health care
+UNH
+JNJ
+LLY
+PFE
+ABBV
+# Industrials
+CAT
+GE
+HON
+UPS
+BA
+# Energy
+XOM
+CVX
+COP
+# Materials
+LIN
+APD
+SHW
+# Utilities
+NEE
+DUK
+# Real estate
+AMT
+PLD

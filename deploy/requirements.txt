@@ -1,0 +1,2 @@
+# Streamlit selects requirements beside the hosted entrypoint.
+-r ../requirements-deploy.txt

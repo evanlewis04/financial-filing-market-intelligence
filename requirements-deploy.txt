@@ -1,0 +1,9 @@
+# Direct runtime dependencies, pinned to the locally validated environment.
+streamlit==1.60.0
+numpy==2.5.1
+python-dotenv==1.2.2
+voyageai==0.5.0
+openai==2.52.0
+beautifulsoup4==4.15.0
+requests==2.34.2
+psutil==7.2.2
