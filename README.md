@@ -58,6 +58,9 @@ generated answer. Market context defaults to a deterministic offline snapshot; i
 is attached through an injectable provider so the platform never depends on a live
 market feed.
 
+A pinned, password-gated 50-company demo is prepared separately; see the
+[hosted demo setup and validation](docs/hosted-demo.md). Deployment is pending.
+
 ## Eval results
 
 Local retrieval/answer eval over a 12-ticker SEC corpus (~6,259 chunks), offline

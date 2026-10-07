@@ -1,0 +1,17 @@
+{
+  "wrong_password_blocked": true,
+  "company_options": 50,
+  "accepted_filing_citations": 5,
+  "answer_gate": {
+    "allowed": true,
+    "reasons": []
+  },
+  "answer_citation_count": 5,
+  "real_providers": [
+    "Voyage",
+    "OpenAI"
+  ],
+  "local_streamlit_apptest": true,
+  "host_acceptance": false,
+  "sign_out_relocks": true
+}

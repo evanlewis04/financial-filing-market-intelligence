@@ -1,0 +1,18 @@
+{
+  "platform": "Windows-11-10.0.26300-SP0",
+  "python": "3.13.5",
+  "cache_state": "OS cache warm; fresh isolated deploy environment process and empty Streamlit resource cache",
+  "fresh_process": true,
+  "corpus_sharing": false,
+  "seconds_including_imports": 2.1087573999830056,
+  "peak_rss_bytes": 247320576,
+  "current_rss_bytes": 247320576,
+  "health": {
+    "status": "ok",
+    "service": "financial_rag_local_api",
+    "chunk_count": 26354,
+    "embedding_count": 25582
+  },
+  "snapshot_id": "sha256:1ca318c228b8087fcc2e4c6fc8fb30cb8bb4c17746bad03118e734feae2ecd41",
+  "acceptance_met": true
+}

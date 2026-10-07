@@ -1,0 +1,9 @@
+{
+  "manifest_ui_api_tickers_identical": true,
+  "ticker_count": 50,
+  "out_of_slice_ticker": "IBM",
+  "present_in_full_corpus": true,
+  "rejection_code": "unsupported_ticker",
+  "answer_generation_calls": 0,
+  "historical_tsla_control": "stale expectation, preserved failure; not a passed negative control"
+}

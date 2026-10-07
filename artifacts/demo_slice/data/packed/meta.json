@@ -1,0 +1,10 @@
+{
+  "built_at": "2026-10-06T23:10:44.933702+00:00",
+  "count": 25582,
+  "dimensions": 1024,
+  "dtype": "float16",
+  "duplicate_chunk_ids": 0,
+  "model": "voyage-finance-2",
+  "restricted_to_chunk_ids": true,
+  "source": "C:\\Users\\aruba\\.buzz\\.scratch\\prA_controlled\\after\\data\\vector_cache"
+}

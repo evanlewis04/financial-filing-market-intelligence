@@ -26,6 +26,9 @@ from src.financial_rag.integration import (
     build_unified_brief,
     market_provider_from_metrics,
 )
+from src.financial_rag.hosted_demo import (
+    bridge_provider_secrets, load_demo_service, require_password, retrieval_notice,
+)
 from src.financial_rag.settings import project_root
 from src.financial_rag.workbench import company_options
 
@@ -437,8 +440,22 @@ def _markup(payload: str) -> None:
     st.markdown(payload, unsafe_allow_html=True)
 
 
-def main() -> None:
+@st.cache_resource(show_spinner="Loading pinned filing corpus...")
+def _demo_service(root: str, use_voyage: bool):
+    return load_demo_service(Path(root), use_voyage=use_voyage)
+
+
+def main(*, hosted: bool = False) -> None:
     st.set_page_config(page_title="Filing Intelligence — SEC brief", layout="wide")
+
+    try:
+        secrets = dict(st.secrets)
+    except FileNotFoundError:
+        secrets = {}
+    if hosted or secrets.get("APP_PASSWORD"):
+        if not require_password(st, secrets):
+            return
+    bridge_provider_secrets(secrets)
 
     with st.sidebar:
         st.markdown("### Filing Intelligence")
@@ -458,7 +475,22 @@ def main() -> None:
     if "appearance" not in st.session_state:
         inject_theme(st, dark=False)
 
-    service = build_local_api_service(root=project_root(), use_voyage=use_voyage)
+    if hosted:
+        try:
+            service, manifest = _demo_service(str(ROOT / "artifacts/demo_slice"), use_voyage)
+        except (OSError, ValueError, KeyError):
+            st.error("Pinned demo data is unavailable or failed integrity checks. Contact the owner.")
+            return
+        st.info(
+            f"Hosted demo — {len(manifest['tickers'])} of {manifest['source_company_count']} companies, "
+            f"corpus pinned {manifest['built_at'][:10]}. "
+            f"Latest cached filing: {manifest['latest_filing_date']}. "
+            "Full corpus runs locally; this is historical disclosure, not live data. "
+            f"{manifest['missing_vector_count']} chunks have no vector and use lexical scoring only."
+        )
+    else:
+        service = build_local_api_service(root=project_root(), use_voyage=use_voyage)
+    st.caption(retrieval_notice(use_voyage))
     options = company_options(service.companies()) or ["NVDA"]
     default_index = options.index("NVDA") if "NVDA" in options else 0
 
@@ -476,7 +508,7 @@ def main() -> None:
     with question_col:
         question = st.text_area(
             "Question",
-            value="How have NVIDIA data center demand disclosures changed over the last year?",
+            value="What are the main business risks described in this company's filings?",
             height=90,
         )
 
@@ -485,15 +517,20 @@ def main() -> None:
 
     if build:
         provider = market_provider_from_metrics(DETERMINISTIC_SNAPSHOT)
-        st.session_state["last_brief"] = build_unified_brief(
-            service,
-            question=question,
-            ticker=ticker,
-            top_k=int(top_k),
-            per_subquery_k=int(per_subquery_k),
-            market_provider=provider,
-            run_answer=run_answer,
-        ).to_dict()
+        try:
+            st.session_state["last_brief"] = build_unified_brief(
+                service,
+                question=question,
+                ticker=ticker,
+                top_k=int(top_k),
+                per_subquery_k=int(per_subquery_k),
+                market_provider=provider,
+                run_answer=run_answer,
+            ).to_dict()
+        except Exception:
+            st.session_state.pop("last_brief", None)
+            st.error("The brief could not be completed. Check the question and provider availability, then retry.")
+            return
 
     # Persist the last brief across reruns so flipping the theme (or any other
     # widget) does not wipe the results.

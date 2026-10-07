@@ -1,0 +1,42 @@
+[
+  {
+    "case_id": "meta-advertising-revenue",
+    "full_selected_chunks": 5,
+    "input_chars_including_instructions": 12189,
+    "all_complete_text_present": true,
+    "retrieval_payload_unchanged": true,
+    "actual_brief_path": true,
+    "provider": "offline fake client",
+    "paid_calls": 0
+  },
+  {
+    "case_id": "aapl-gross-margin",
+    "full_selected_chunks": 5,
+    "input_chars_including_instructions": 12797,
+    "all_complete_text_present": true,
+    "retrieval_payload_unchanged": true,
+    "actual_brief_path": true,
+    "provider": "offline fake client",
+    "paid_calls": 0
+  },
+  {
+    "case_id": "nvda-press-release-gross-margin",
+    "full_selected_chunks": 5,
+    "input_chars_including_instructions": 10668,
+    "all_complete_text_present": true,
+    "retrieval_payload_unchanged": true,
+    "actual_brief_path": true,
+    "provider": "offline fake client",
+    "paid_calls": 0
+  },
+  {
+    "case_id": "nvda-inventory-capacity",
+    "full_selected_chunks": 5,
+    "input_chars_including_instructions": 11217,
+    "all_complete_text_present": true,
+    "retrieval_payload_unchanged": true,
+    "actual_brief_path": true,
+    "provider": "offline fake client",
+    "paid_calls": 0
+  }
+]

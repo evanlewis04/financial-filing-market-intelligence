@@ -88,12 +88,20 @@ class LocalRagApiService:
         retriever: LocalDenseRetriever,
         root: Path | str = Path("."),
         reranker: Reranker | None = None,
+        supported_tickers: set[str] | None = None,
     ) -> None:
+        self.supported_tickers = set(KNOWN_TICKERS if supported_tickers is None else supported_tickers)
         self.chunks = chunks
         self.retriever = retriever
         self.root = Path(root)
         self.reranker = reranker
         self.pipeline = QueryPipeline(retriever=retriever, chunks=chunks, reranker=reranker)
+
+    def synthesis_evidence(self, query_payload: dict[str, Any]):
+        """Resolve only selected IDs against this service's already-loaded corpus."""
+        from src.financial_rag.synthesis.evidence import resolve_full_text_evidence
+
+        return resolve_full_text_evidence(query_payload, self.chunks)
 
     def health(self) -> dict[str, Any]:
         status = "ok" if self.chunks and self.retriever.embeddings else "empty_cache"
@@ -107,11 +115,11 @@ class LocalRagApiService:
     def coverage(self, *, tickers: list[str] | None = None) -> dict[str, Any]:
         if tickers:
             for ticker in tickers:
-                _validate_ticker(ticker)
+                _validate_ticker(ticker, supported_tickers=self.supported_tickers)
         return serialize_coverage_report(build_coverage_report(self.chunks, tickers=tickers))
 
     def query(self, request: QueryRequest) -> dict[str, Any]:
-        _validate_request(request)
+        _validate_request(request, supported_tickers=self.supported_tickers)
         self._require_cache(require_embeddings=False)
         result = self.pipeline.run(
             request.question,
@@ -153,7 +161,7 @@ class LocalRagApiService:
         return payload
 
     def differentiators(self, *, ticker: str, fact_name: str = "Revenues") -> dict[str, Any]:
-        _validate_ticker(ticker)
+        _validate_ticker(ticker, supported_tickers=self.supported_tickers)
         self._require_cache(require_embeddings=False)
         ticker_chunks = [
             chunk for chunk in self.chunks if str(chunk.metadata.get("ticker", "")).upper() == ticker.upper()
@@ -199,7 +207,7 @@ class LocalRagApiService:
         """List cached filing documents, optionally filtered by ticker."""
 
         self._require_cache(require_embeddings=False)
-        wanted = _validate_ticker(ticker) if ticker else None
+        wanted = _validate_ticker(ticker, supported_tickers=self.supported_tickers) if ticker else None
         documents: dict[str, dict[str, Any]] = {}
         for chunk in self.chunks:
             metadata = chunk.metadata
@@ -230,7 +238,7 @@ class LocalRagApiService:
     def market_context(self, *, ticker: str) -> dict[str, Any]:
         """Return market-data context provenance for one queryable ticker."""
 
-        normalized = _validate_ticker(ticker)
+        normalized = _validate_ticker(ticker, supported_tickers=self.supported_tickers)
         return {"ticker": normalized, "market_context": get_market_context(normalized).to_dict()}
 
     def _document_counts(self) -> dict[str, int]:
@@ -266,6 +274,7 @@ def build_local_api_service(
     use_voyage: bool = True,
     reranker: str = "none",
     snapshot: "CorpusSnapshot | None" = None,
+    supported_tickers: set[str] | None = None,
 ) -> LocalRagApiService:
     """Build the local service from cached chunks and vectors.
 
@@ -287,7 +296,8 @@ def build_local_api_service(
         embedder = ConstantQueryEmbedder(1)
     retriever = LocalDenseRetriever(chunks=chunks, embeddings=embeddings, query_embedder=embedder)
     reranker_impl = build_reranker(reranker, chunk_texts=[chunk.chunk_text for chunk in chunks])
-    return LocalRagApiService(chunks=chunks, retriever=retriever, root=root, reranker=reranker_impl)
+    return LocalRagApiService(chunks=chunks, retriever=retriever, root=root, reranker=reranker_impl,
+                              supported_tickers=supported_tickers)
 
 
 def create_fastapi_app(service: LocalRagApiService) -> Any:
@@ -516,28 +526,29 @@ def _parse_as_of(value: Any) -> datetime | None:
         ) from exc
 
 
-def _validate_request(request: QueryRequest) -> None:
+def _validate_request(request: QueryRequest, *, supported_tickers: set[str] | None = None) -> None:
     if not request.question.strip():
         raise LocalApiError(
             status_code=400,
             code="invalid_question",
             message="Query question must be a non-empty string.",
         )
-    _validate_ticker(request.ticker)
+    _validate_ticker(request.ticker, supported_tickers=supported_tickers)
     _validate_k("top_k", request.top_k)
     _validate_k("per_subquery_k", request.per_subquery_k)
 
 
-def _validate_ticker(ticker: str) -> str:
+def _validate_ticker(ticker: str, *, supported_tickers: set[str] | None = None) -> str:
+    universe = KNOWN_TICKERS if supported_tickers is None else supported_tickers
     normalized = ticker.strip().upper()
     if not normalized:
         raise LocalApiError(status_code=400, code="invalid_ticker", message="Ticker must be non-empty.")
-    if normalized not in KNOWN_TICKERS:
+    if normalized not in universe:
         raise LocalApiError(
             status_code=400,
             code="unsupported_ticker",
             message="Ticker is outside the configured financial RAG universe.",
-            details={"ticker": normalized, "supported_tickers": sorted(KNOWN_TICKERS)},
+            details={"ticker": normalized, "supported_tickers": sorted(universe)},
         )
     return normalized
 

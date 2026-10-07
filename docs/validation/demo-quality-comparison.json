@@ -1,0 +1,274 @@
+{
+  "lexical": {
+    "case_count": 50,
+    "section_source_hit_rate": 1.0,
+    "mean_recall_at_k": 0.38636363636363635,
+    "mrr": 0.1696969696969697,
+    "mean_ndcg_at_k": 0.1871033266714025,
+    "failure_counts": {
+      "unsupported_ticker": 1
+    }
+  },
+  "dense": {
+    "case_count": 50,
+    "section_source_hit_rate": 1.0,
+    "mean_recall_at_k": 0.38636363636363635,
+    "mrr": 0.2087121212121212,
+    "mean_ndcg_at_k": 0.21306116481916237,
+    "failure_counts": {
+      "unsupported_ticker": 1
+    }
+  },
+  "case_metrics_changed": [
+    {
+      "case_id": "nvda-item1a-export-controls",
+      "worse": [],
+      "better": [
+        "reciprocal_rank",
+        "ndcg_at_k"
+      ],
+      "lexical": {
+        "recall_at_k": 1.0,
+        "reciprocal_rank": 0.3333333333333333,
+        "ndcg_at_k": 0.5
+      },
+      "dense": {
+        "recall_at_k": 1.0,
+        "reciprocal_rank": 0.5,
+        "ndcg_at_k": 0.6309297535714575
+      }
+    },
+    {
+      "case_id": "nvda-press-release-gross-margin",
+      "worse": [
+        "reciprocal_rank",
+        "ndcg_at_k"
+      ],
+      "better": [],
+      "lexical": {
+        "recall_at_k": 1.0,
+        "reciprocal_rank": 0.25,
+        "ndcg_at_k": 0.43067655807339306
+      },
+      "dense": {
+        "recall_at_k": 1.0,
+        "reciprocal_rank": 0.2,
+        "ndcg_at_k": 0.38685280723454163
+      }
+    },
+    {
+      "case_id": "nvda-inventory-capacity",
+      "worse": [],
+      "better": [
+        "recall_at_k",
+        "reciprocal_rank",
+        "ndcg_at_k"
+      ],
+      "lexical": {
+        "recall_at_k": 0.0,
+        "reciprocal_rank": 0.0,
+        "ndcg_at_k": 0.0
+      },
+      "dense": {
+        "recall_at_k": 1.0,
+        "reciprocal_rank": 0.25,
+        "ndcg_at_k": 0.43067655807339306
+      }
+    },
+    {
+      "case_id": "nvda-safe-harbor-negative-control",
+      "worse": [],
+      "better": [
+        "ndcg_at_k"
+      ],
+      "lexical": {
+        "recall_at_k": 1.0,
+        "reciprocal_rank": 1.0,
+        "ndcg_at_k": 0.5087403079104241
+      },
+      "dense": {
+        "recall_at_k": 1.0,
+        "reciprocal_rank": 1.0,
+        "ndcg_at_k": 0.5531464700081437
+      }
+    },
+    {
+      "case_id": "aapl-gross-margin",
+      "worse": [
+        "reciprocal_rank",
+        "ndcg_at_k"
+      ],
+      "better": [],
+      "lexical": {
+        "recall_at_k": 1.0,
+        "reciprocal_rank": 0.5,
+        "ndcg_at_k": 0.6309297535714575
+      },
+      "dense": {
+        "recall_at_k": 1.0,
+        "reciprocal_rank": 0.3333333333333333,
+        "ndcg_at_k": 0.5
+      }
+    },
+    {
+      "case_id": "nvda-amd-data-center-compare",
+      "worse": [],
+      "better": [
+        "reciprocal_rank",
+        "ndcg_at_k"
+      ],
+      "lexical": {
+        "recall_at_k": 1.0,
+        "reciprocal_rank": 0.2,
+        "ndcg_at_k": 0.23719771276929622
+      },
+      "dense": {
+        "recall_at_k": 1.0,
+        "reciprocal_rank": 0.25,
+        "ndcg_at_k": 0.2640681225725909
+      }
+    },
+    {
+      "case_id": "aapl-services",
+      "worse": [],
+      "better": [
+        "reciprocal_rank",
+        "ndcg_at_k"
+      ],
+      "lexical": {
+        "recall_at_k": 1.0,
+        "reciprocal_rank": 0.3333333333333333,
+        "ndcg_at_k": 0.3065735963827292
+      },
+      "dense": {
+        "recall_at_k": 1.0,
+        "reciprocal_rank": 0.5,
+        "ndcg_at_k": 0.38685280723454163
+      }
+    },
+    {
+      "case_id": "jpm-net-interest-income",
+      "worse": [],
+      "better": [
+        "reciprocal_rank",
+        "ndcg_at_k"
+      ],
+      "lexical": {
+        "recall_at_k": 1.0,
+        "reciprocal_rank": 0.25,
+        "ndcg_at_k": 0.2640681225725909
+      },
+      "dense": {
+        "recall_at_k": 1.0,
+        "reciprocal_rank": 1.0,
+        "ndcg_at_k": 0.6131471927654584
+      }
+    },
+    {
+      "case_id": "googl-cloud-revenue",
+      "worse": [],
+      "better": [
+        "reciprocal_rank",
+        "ndcg_at_k"
+      ],
+      "lexical": {
+        "recall_at_k": 1.0,
+        "reciprocal_rank": 0.2,
+        "ndcg_at_k": 0.23719771276929622
+      },
+      "dense": {
+        "recall_at_k": 1.0,
+        "reciprocal_rank": 0.5,
+        "ndcg_at_k": 0.38685280723454163
+      }
+    },
+    {
+      "case_id": "meta-advertising-revenue",
+      "worse": [
+        "recall_at_k",
+        "reciprocal_rank",
+        "ndcg_at_k"
+      ],
+      "better": [],
+      "lexical": {
+        "recall_at_k": 1.0,
+        "reciprocal_rank": 0.25,
+        "ndcg_at_k": 0.2640681225725909
+      },
+      "dense": {
+        "recall_at_k": 0.0,
+        "reciprocal_rank": 0.0,
+        "ndcg_at_k": 0.0
+      }
+    },
+    {
+      "case_id": "meta-reality-labs",
+      "worse": [],
+      "better": [
+        "reciprocal_rank",
+        "ndcg_at_k"
+      ],
+      "lexical": {
+        "recall_at_k": 1.0,
+        "reciprocal_rank": 0.5,
+        "ndcg_at_k": 0.6309297535714575
+      },
+      "dense": {
+        "recall_at_k": 1.0,
+        "reciprocal_rank": 1.0,
+        "ndcg_at_k": 1.0
+      }
+    }
+  ],
+  "ordered_ids_changed": [
+    "nvda-item1a-export-controls",
+    "nvda-item1a-supply",
+    "nvda-10q-risk-update",
+    "nvda-cfo-revenue",
+    "nvda-press-release-gross-margin",
+    "nvda-data-center-demand",
+    "nvda-inventory-capacity",
+    "nvda-safe-harbor-negative-control",
+    "nvda-capital-allocation",
+    "nvda-quarterly-revenue-change",
+    "amd-item1a-supply",
+    "amd-data-center",
+    "amd-export-controls",
+    "msft-item1a-ai-risk",
+    "msft-capital-allocation",
+    "msft-azure-revenue",
+    "aapl-china-risk",
+    "aapl-gross-margin",
+    "jpm-item1a-credit-risk",
+    "jpm-capital-return",
+    "jpm-interest-rate-risk",
+    "xom-item1a-commodity-risk",
+    "xom-capital-spending",
+    "nvda-amd-data-center-compare",
+    "aapl-msft-capital-allocation-compare",
+    "nvda-cross-source-risk-cfo",
+    "nvda-press-release-vs-10q-demand",
+    "msft-item1a-cybersecurity",
+    "aapl-services",
+    "aapl-press-release-revenue",
+    "aapl-item1a-competition",
+    "jpm-consumer-banking",
+    "jpm-net-interest-income",
+    "xom-press-release-earnings",
+    "googl-cloud-revenue",
+    "googl-item1a-competition",
+    "meta-advertising-revenue",
+    "meta-reality-labs",
+    "meta-item1a-regulation",
+    "amzn-aws-revenue",
+    "bac-item1a-credit-risk",
+    "bac-consumer-banking",
+    "gs-item1a-market-risk",
+    "gs-trading",
+    "intc-data-center",
+    "intc-manufacturing",
+    "intc-competition",
+    "unsupported-tsla-risk"
+  ],
+  "resolved_cases_identical": true
+}

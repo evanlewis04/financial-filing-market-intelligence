@@ -8,7 +8,7 @@ is performed by the caller (the brief view) only when the gate allows it.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any, Callable
 
 from src.financial_rag.api import QueryRequest
@@ -17,6 +17,7 @@ from src.financial_rag.differentiators import get_market_context
 from src.financial_rag.integration.market_evidence import build_market_evidence_brief
 from src.financial_rag.synthesis import check_openai_readiness, synthesize_answer_from_query_payload
 from src.financial_rag.workbench import evaluate_answer_gate
+from src.financial_rag.synthesis.evidence import EvidenceDeliveryError
 
 
 @dataclass(frozen=True)
@@ -123,12 +124,18 @@ def build_unified_brief(
         openai_issues=readiness.issues,
     )
     answer = None
+    delivery_issue = ""
     if run_answer and gate.allowed:
-        answer = synthesize_answer_from_query_payload(
-            query_payload, question=question, dry_run=False, client=openai_client
-        )
+        try:
+            evidence = service.synthesis_evidence(query_payload)
+            answer = synthesize_answer_from_query_payload(
+                query_payload, question=question, dry_run=False, client=openai_client,
+                full_evidence=evidence,
+            )
+        except EvidenceDeliveryError as exc:
+            delivery_issue = str(exc)
 
-    return assemble_unified_brief(
+    brief = assemble_unified_brief(
         query_payload,
         market_context,
         question=question,
@@ -138,3 +145,8 @@ def build_unified_brief(
         openai_issues=readiness.issues,
         answer=answer,
     )
+
+    if delivery_issue:
+        return replace(brief, answer_gate={"allowed": False, "reasons": [delivery_issue]},
+                       notes=[*brief.notes, "Answer blocked: " + delivery_issue])
+    return brief
