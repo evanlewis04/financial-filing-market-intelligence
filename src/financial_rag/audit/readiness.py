@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
@@ -49,7 +50,7 @@ class ReadinessReport:
 
 def build_readiness_report(
     chunks: list[LocalChunkRecord],
-    embeddings: dict[str, list[float]],
+    embeddings: Mapping[str, list[float]],
     *,
     tickers: list[str] | None = None,
     root: Path | str = Path("."),

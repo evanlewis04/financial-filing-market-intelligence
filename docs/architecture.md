@@ -44,6 +44,21 @@ The package is organized into focused subpackages under `src/financial_rag/`:
 `synthesis`, `query`, `api`, `evaluation`, `audit`, `differentiators`, and
 `integration`.
 
+## Vector store
+
+Chunk vectors are cached one JSON file per chunk under `data/vector_cache`. That
+layout is the idempotent write target during embedding and remains the source of
+truth. At corpus scale (265,742 chunks, 1024 dims) it also costs minutes of file
+I/O and several GB of resident memory to load, so `load_local_retrieval_corpus`
+prefers a packed artifact under `data/packed` when one is present: a
+memory-mapped float16 `[N, dim]` matrix plus row-order chunk ids
+(`src/financial_rag/retrieval/packed_vectors.py`, built by
+`scripts/financial_rag_pack_vectors.py`). The packed form is a derived cache, not
+a second source of truth — delete it and the per-file loader takes over
+unchanged. Dense scoring uses matmul over batches of candidate rows that survived
+filtering; the per-file path keeps the original per-chunk
+cosine.
+
 ## Market context
 
 Market context attaches through an **injectable provider** seam
